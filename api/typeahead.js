@@ -15,11 +15,12 @@ module.exports = function(req, res) {
   }
 
   request({
-    url: 'http://api.giphy.com/v1/gifs/search',
+    url: 'http://www.reddit.com/search/.json',
     qs: {
-      q: term,
       limit: 15,
-      api_key: key
+      count: 0,
+      type: "link",
+      q: term
     },
     gzip: true,
     json: true,
@@ -30,14 +31,17 @@ module.exports = function(req, res) {
       return;
     }
 
-    var results = _.chain(response.body.data)
-      .reject(function(image) {
-        return !image || !image.images || !image.images.fixed_height_small;
-      })
-      .map(function(image) {
+    var results = _.chain(response.body.data.children)
+      //.reject(function(image) {
+       // return !image || !image.images || !image.images.fixed_height_small;
+      //})
+      .map(function(ret) {
+          var send = { url: ret.data.url,
+                      title: ret.data.title}
         return {
-          title: '<img style="height:75px" src="' + image.images.fixed_height_small.url + '">',
-          text: 'http://giphy.com/' + image.id
+          title: '<a href="' + ret.data.url + '">' + ret.data.title +'</a>',// '<img style="height:75px" src="' + image.images.fixed_height_small.url + '">',
+          
+          text: JSON.stringify(send)
         };
       })
       .value();
@@ -51,5 +55,4 @@ module.exports = function(req, res) {
       res.json(results);
     }
   });
-
 };
